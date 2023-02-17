@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const app = (0, express_1.default)();
-const PORT = 5000;
+const PORT = 3000;
 const databaseConnection_1 = __importDefault(require("./lib/databaseConnection"));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -37,7 +37,7 @@ app.post('/user/:name', (req, res) => __awaiter(void 0, void 0, void 0, function
     if (!user) {
         return res.status(404).send('Not found');
     }
-    return user;
+    return res.send(user);
 }));
 //register user
 app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -49,9 +49,17 @@ app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     return res.send(newUser);
 }));
 //deactivate user
-app.post('/delme', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.delete('/delme', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.body;
-    const removedUser = User_1.default.deleteOne({ name }).remove().exec();
-    return res.send(removedUser);
+    const user = yield User_1.default.findOne({ name });
+    const removedUser = yield User_1.default.deleteOne({ name }).remove().exec();
+    return res.send(`${user.name} removed!`);
+}));
+//update user
+app.put('/update/:name', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name } = req.params;
+    const { newname } = req.body;
+    const user = yield User_1.default.updateOne({ name }, { $set: { name: newname } });
+    return res.send(user);
 }));
 app.listen(PORT, () => console.log(`Listening on ${PORT}...`));

@@ -1,7 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 
 const app: Express = express();
-const PORT = 5000;
+const PORT = 3000;
 import databaseConnection from './lib/databaseConnection';
 
 app.use(express.json());
@@ -31,11 +31,11 @@ app.post('/user/:name', async (req: Request, res: Response) => {
     if(!user) {
         return res.status(404).send('Not found');
     }
-    return user;
+    return res.send(user);
 })
 
 //register user
-app.post('/register', async (req, res) => {
+app.post('/register', async (req: Request, res: Response) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if(user) return res.send('User exists already!');
@@ -44,10 +44,19 @@ app.post('/register', async (req, res) => {
 });
 
 //deactivate user
-app.post('/delme', async (req: Request, res: Response) => {
+app.delete('/delme', async (req: Request, res: Response) => {
     const { name } = req.body;
-    const removedUser = User.deleteOne({ name }).remove().exec();
-    return res.send(removedUser);
+    const user = await User.findOne({ name});
+    const removedUser = await User.deleteOne({ name }).remove().exec();
+    return res.send(`${user.name} removed!`);
+});
+
+//update user
+app.put('/update/:name', async (req: Request, res: Response) => {
+    const { name } = req.params;
+    const { newname } = req.body;
+    const user = await User.updateOne({ name }, { $set: { name: newname }});
+    return res.send(user);
 })
 
 app.listen(PORT, () => console.log(`Listening on ${PORT}...`))
